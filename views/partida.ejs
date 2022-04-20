@@ -7,3 +7,292 @@
   socket.emit('new-user', id, name)
 
 </script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+  *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat',sans-serif;
+  }   
+  body{
+    background: #d8e4fc;
+    display: flex;
+    flex-direction: column;
+  }
+
+  main{
+    position: relative;
+    margin: 50px auto;
+    display: grid;
+    gap: 10px;
+    grid-template-areas: 
+    "canvas options" "tools none";
+  }
+
+  .options{grid-area: options;}
+  .canvas{grid-area: canvas;}
+  .tools{grid-area: tools;}
+
+  .canvas{
+    background: rgb(255, 255, 255);
+    z-index: 5;
+  }
+
+  .options section{
+    user-select: none;
+    border-radius: 4px;
+    padding: 5px;
+    display: flex;
+    gap: 15px;
+    flex-direction: column;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .options section div{
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 2px solid black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  
+
+  .options div:active{
+    transform: scale(0.95);
+  }
+
+  .bordes{
+    background-color: white;
+  }
+  .limpiar{
+    background-color: tomato;
+  }
+  .guardar{
+    background-color: lightgreen ;
+  }
+  
+  .hover{
+    left: 0;
+    background: transparent;
+    position: absolute;
+    z-index: 10;
+  }
+
+
+  .tools{
+    user-select: none;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .tools div{
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bolder;
+    color: white;
+    border: 2px solid black;
+    text-transform: uppercase;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+
+  .start{background: royalblue;}
+  .wall{background: black;}
+  .floor{background: white; color: black !important;}
+  .end{background: lightgreen; color: black !important;}
+
+  .tools div:active{
+    transform: scale(0.95);
+  }
+
+  .activeBtn{
+    border: 2px solid #f54c4c !important;
+    color: #f54c4c !important;
+  }
+
+  img{display: none;}
+</style>
+<body>
+  <a href="/">salir</a>
+  <main>
+   <section class="canvasBox">
+      <canvas class="canvas"></canvas>
+      <canvas class="hover">
+        <img src="./img/crosshair.png" id="crosshair">
+      </canvas>
+   </section>
+  </main>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+
+    socket.on('user-connected', player => {
+      console.log(player);
+    })
+
+    /* settings */
+    const canvasSize = 600
+    const pixelSize = canvasSize / 20
+    const players = []
+    const mouse = {
+      click: false,
+      x: 0,
+      y: 0,
+      color: 'black'
+    }
+    let boardMap = [];
+
+  const canvas = document.querySelector('canvas.canvas')
+  const ctx = canvas.getContext('2d')
+  canvas.width = canvas.height = canvasSize
+
+  class Pixel{
+    constructor(x,y,color){
+      this.x = x
+      this.y = y
+      this.color = color == null ? 'white' : color
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.rect(this.x,this.y,pixelSize,pixelSize)
+      ctx.fillStyle = this.color
+      ctx.fill()
+      ctx.closePath()
+    }
+  }
+
+  function filBoard(){
+    let board = []
+    for (let y = 0; y < 20; y++) {
+      for (let x = 0; x < 20; x++) {
+        board.push(new Pixel(x*pixelSize,y*pixelSize))
+      }
+    }
+    return board;
+  }
+
+  function printBoard(board){
+    for (let i = 0; i < board.length; i++) {
+      board[i].draw()
+    }
+  }
+  
+  
+  const canvash = document.querySelector('canvas.hover')
+  const ctxh = canvash.getContext('2d')
+  canvash.width = canvash.height = canvasSize
+  function hoverAnimation(){
+    requestAnimationFrame(hoverAnimation)
+    ctxh.clearRect(0,0,canvash.width,canvash.height)
+    players.forEach(n => { n.draw()})
+  }
+
+
+  /* get level 1 */
+  function getLevel(){
+    fetch('http://127.0.0.1:5500/level1.json')
+    .then(response => response.json())
+    .then(r => {
+      arr = []
+      for (let i = 0; i < r.length; i++) {
+        arr.push(new Pixel(r[i].x,r[i].y,r[i].color))  
+      }
+      boardMap = arr;
+      printBoard(boardMap)
+    })
+  }
+
+  function getQuery(q) {
+   return (window.location.search.match(new RegExp('[?&]' + q + '=([^&]+)')) || [, null])[1];
+  }
+
+  /* init */
+  async function init(){
+    fetch('/getmap',{
+      method: 'POST',
+      body: JSON.stringify({id} ),
+      headers:{
+          'Content-Type': 'application/json'
+        }
+    }).then(r => r.json())
+    .then(r => {
+      r.data.map.forEach(n => {
+        boardMap.push(new Pixel(n.x,n.y,n.color))
+      });
+      printBoard(boardMap)
+      res = boardMap.filter(n => n.color == 'royalblue')
+      players.push(new Player(res[0].x,res[0].y,'red'))
+    })
+  }
+    hoverAnimation()
+
+  class Player{
+    constructor(x,y,color){
+      this.x = x
+      this.y = y
+      this.color = color
+    }
+
+    draw(){
+      ctxh.beginPath()
+      ctxh.arc(this.x+25/2+3,this.y+25/2+3,10,Math.PI*2,false)
+      ctxh.fillStyle = this.color
+      ctxh.fill()
+      ctxh.closePath()
+    }
+  }
+
+
+  document.addEventListener('keyup', e => {
+    switch (e.keyCode) {
+      case 39:
+        /* derecha */
+        let ld = boardMap.find(n => players[0].x+pixelSize == n.x && players[0].y == n.y)
+        if(ld.color != undefined && ld.color == 'white'){
+          players[0].x = ld.x
+          players[0].y = ld.y
+        }
+        break;
+      case 37:
+        let li = boardMap.find(n => players[0].x-pixelSize == n.x && players[0].y == n.y)
+        if(li.color != undefined && li.color == 'white'){
+          players[0].x = li.x
+          players[0].y = li.y
+        }
+        break
+      case 40:
+        let lu = boardMap.find(n => players[0].x == n.x && players[0].y+pixelSize == n.y)
+        if(lu.color != undefined && lu.color == 'white'){
+          players[0].x = lu.x
+          players[0].y = lu.y
+        }
+        break
+      case 38:
+        let la = boardMap.find(n => players[0].x == n.x && players[0].y-pixelSize == n.y)
+        if(la.color != undefined && la.color == 'white'){
+          players[0].x = la.x
+          players[0].y = la.y
+        }
+        break
+      default:
+        break;
+    }  
+  })
+  
+  init()
+</script>

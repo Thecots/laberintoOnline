@@ -34,6 +34,7 @@ class Game{
 
 /* routes */
 const rooms = {}
+const colors = ['#90cbee','#9aee90','#ee9090','#c590ee','#4e4e4e','#eeeb90']
 
 app.get('/', (req,res) => {
   res.render('index')
@@ -87,14 +88,22 @@ app.get('/play',(req,res) => {
   res.render('partida', {id: req.query.id})
 })
 
+app.post('/getmap',(req,res) => {
+  db = getdb().find(n => n.id == rooms[req.body.id].map)
+  res.json({ok:true, data: db})
+})
 
 /* socket */
 io.on('connection', socket => {
   socket.on('new-user', (room, name) => {
+    if(rooms[room].players.length > rooms[room].maxplayers){
+      return res.redirect('/')
+    }
     socket.join(room)
-    rooms[room].players.push({name: name, id: socket.id})
+    let player = {name: name, id: socket.id, color: colors[rooms[room].players.length-1]}
+    rooms[room].players.push(player)
     io.sockets.emit('update-rooms',true)
-    socket.broadcast.to(room).emit('user-connected', name)
+    socket.broadcast.to(room).emit('user-connected', {player})
   })
 
 
