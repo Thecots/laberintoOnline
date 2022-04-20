@@ -1,0 +1,199 @@
+<style>
+   main{
+  margin: 0 auto;
+  padding: 10px;
+  max-width: 100%;
+  width: 1500px;
+}
+
+main header{
+  display: flex;
+  justify-content: space-between;
+  padding:  2px 0px;
+  border-bottom: 2px solid;
+}
+
+main header h1{
+  font-weight: 400;
+}
+
+main header div{
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+main header a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 30px;
+  font-weight: 15px;
+  text-decoration: none;
+  border-radius: 4px;
+  color: white;
+  background-color: royalblue;
+  font-weight: 500;
+}
+main header a:last-child{
+  background-color: lightgreen !important;
+  color: black;
+}
+  form{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 1000px;
+    max-width: 100%;
+    margin: 25px auto 10px auto;
+  }
+
+  form div p{
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+
+  form div input{
+    font-size: 18px;
+    padding: 5px 2px;
+    width: 100%;
+    height: 30px;
+  }
+
+  form .mapsimg{
+    overflow: hidden;
+    overflow-x: auto;
+    display: flex;
+    gap: 15px;
+    padding: 10px 5px ;
+    width: 100%;
+  }
+
+  form .mapsimg div {
+    cursor: pointer;
+  }
+
+  form .mapsimg div.selected img{
+    box-shadow: 0 0 0px 5px lightgreen;
+    height: fit-content;
+  }
+
+  form .mapsimg img{
+    width: 150px;
+    user-select: none;
+  }
+
+/* SCROLLBAR */
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 8px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  background: #e6e6e6; 
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgb(44, 44, 44); 
+}
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(59, 59, 59); 
+}
+
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 30px;
+  font-weight: 15px;
+  text-decoration: none;
+  border-radius: 4px;
+  color: white;
+  background-color: royalblue ;
+  font-weight: 500;
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+</style>
+<body>
+  <main>
+    <header>
+      <h1>Crear partida</h1>
+      <div>
+        <a style="  background-color: rgb(238, 144, 144) !important; color: black !important;" href="/">Volver</a>
+      </div>
+    </header>
+    <section>
+      <form>
+        <div>
+          <p>Nombre de la partida</p>
+          <input type="text" id="titulo" required min="4" maxlength="20">
+        </div>
+        <div>
+          <p>Jugadores</p>
+          <input type="number" id="players" required min="1" max="5">
+        </div>
+        <div>
+          <p>Mapa</p>
+          <section class="mapsimg">
+
+          </section>
+        </div>
+        <button type="submit">Crear partida</button>
+      </form>
+    </section>
+  </main>
+  <script>
+    const maps = document.querySelector('.mapsimg')
+    let slectedmap = 0;
+    fetch('/getallmaps', {
+      method: 'POST'
+    })
+    .then(r => r.json())
+    .then(r => {
+      if(r.ok){
+        let t = '';
+        r.data.forEach((n,i) => {
+          t += `<div ${i == 0 ? " class='selected'" :""} id='${n.id}' onclick="selectMap(${i})"><img src="${n.src}"></div>`
+        });
+        maps.innerHTML = t
+      }
+    })
+
+    function selectMap(e){
+      for (let i = 0; i < maps.childElementCount; i++) {
+        maps.children[i].classList.remove('selected')
+        if(e == i){
+          maps.children[i].classList.add('selected')
+          slectedmap = parseInt(maps.children[i].id)
+        }
+      }
+    }
+
+    document.querySelector('form').addEventListener('submit', e => {
+      e.preventDefault()
+      fetch('/createNewGame',{
+        method: 'POST',
+        body: JSON.stringify({
+          title: document.querySelector('#titulo').value,
+          players: document.querySelector('#players').value,
+          map: slectedmap
+        }),
+        headers:{
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(r => r.json())
+      .then(r => {
+        if(r.ok){
+          window.location.href = `/play?id=${r.data.id}`
+        }
+      })
+    })
+  </script>

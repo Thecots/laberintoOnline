@@ -1,0 +1,9 @@
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script>
+  const socket = io('http://localhost:3000')
+  const id = "<%= id %>"
+  const name = prompt('Nombre de usuario: ')
+
+  socket.emit('new-user', id, name)
+
+</script>

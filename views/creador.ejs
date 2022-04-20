@@ -1,0 +1,390 @@
+<style>
+  body{
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  main{
+    position: relative;
+    margin: 20px auto;
+    display: grid;
+    gap: 10px;
+    grid-template-areas: 
+    "canvas options" "tools none";
+  }
+
+  .options{grid-area: options;}
+  .canvas{grid-area: canvas;}
+  .canva{grid-area: tools;}
+
+  .options section,.canvas, .tools{
+    border: 5px solid;
+  }
+
+  .canvas{
+    background: rgb(255, 255, 255);
+    z-index: 5;
+
+  }
+
+  .options section{
+    user-select: none;
+    border-radius: 4px;
+    padding: 5px;
+    display: flex;
+    gap: 15px;
+    flex-direction: column;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .options section div{
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 2px solid black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  
+
+  .options div:active{
+    transform: scale(0.95);
+  }
+
+  .bordes{
+    background-color: white;
+  }
+  .limpiar{
+    background-color: tomato;
+  }
+  .guardar{
+    background-color: lightgreen ;
+  }
+  
+  .hover{
+    top: 0;
+    left: 0;
+    border: 5px solid transparent;
+    background: transparent;
+    position: absolute;
+    z-index: 10;
+  }
+
+
+  .tools{
+    user-select: none;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .tools div{
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bolder;
+    color: white;
+    border: 2px solid black;
+    text-transform: uppercase;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+
+  .start{background: royalblue;}
+  .wall{background: black;}
+  .floor{background: white; color: black !important;}
+  .end{background: lightgreen; color: black !important;}
+
+  .tools div:active{
+    transform: scale(0.95);
+  }
+
+  .activeBtn{
+    border: 2px solid #f54c4c !important;
+    color: #f54c4c !important;
+  }
+
+  img{display: none;}
+
+  /* header */
+
+  
+header{
+  margin: 0 auto;
+  max-width: 100%;
+  width: 1500px;
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0px;
+  border-bottom: 2px solid;
+}
+
+header h1{
+  font-weight: 400;
+}
+
+header div{
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+header a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 30px;
+  font-weight: 15px;
+  text-decoration: none;
+  border-radius: 4px;
+  color: black;
+  background-color: rgb(238, 144, 144) ;
+  font-weight: 500;
+}
+</style>
+<body>
+  <header>
+    <h1>Creador de laberintos</h1>
+    <div>
+      <a href="/">Volver</a>
+    </div>
+  </header>
+  <main>
+   <section class="canvasBox">
+      <canvas class="canvas"></canvas>
+      <canvas class="hover">
+        <img src="./img/crosshair.png" id="crosshair">
+      </canvas>
+   </section>
+   <div class="options">
+      <section>
+        <div class="bordes" onclick="drawBorder()">Bordes</div> 
+        <div class="limpiar" onclick="cleanBoard()">Limpiar</div>
+        <div class="guardar" onclick="saveMap()">Guardar</div>
+      </section>
+   </div>
+   <section class="tools">
+     <div class="start" onclick="setColor('royalblue',1)">Inicio</div>
+     <div class="wall activeBtn" onclick="setColor('black',2)">Pared</div>
+     <div class="floor"  onclick="setColor('white',3)">Suelo</div>
+     <div class="end" onclick="setColor('lightgreen',4)">Meta</div>
+   </section>
+  </main>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    /* settings */
+    const canvasSize = 600
+    const pixelSize = canvasSize / 20
+    const mouse = {
+      click: false,
+      x: 0,
+      y: 0,
+      color: 'black'
+    }
+    let boardMap;
+
+  const canvas = document.querySelector('canvas.canvas')
+  const ctx = canvas.getContext('2d')
+  canvas.width = canvas.height = canvasSize
+
+  class Pixel{
+    constructor(x,y,color){
+      this.x = x
+      this.y = y
+      this.color = color == null ? 'white' : color
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.rect(this.x,this.y,pixelSize,pixelSize)
+      ctx.fillStyle = this.color
+      ctx.fill()
+      ctx.closePath()
+    }
+  }
+
+
+  function filBoard(){
+    let board = []
+    for (let y = 0; y < 20; y++) {
+      for (let x = 0; x < 20; x++) {
+        board.push(new Pixel(x*pixelSize,y*pixelSize))
+      }
+    }
+    return board;
+  }
+
+  function printBoard(board){
+    for (let i = 0; i < board.length; i++) {
+      board[i].draw()
+    }
+  }
+
+  /* hover effect crosshair */
+  const canvash = document.querySelector('canvas.hover')
+  const ctxh = canvash.getContext('2d')
+  canvash.width = canvash.height = canvasSize
+  class Crosshair{
+    constructor(x,y){
+      this.x = y
+      this.y = y
+    }
+    draw(){
+      ctxh.drawImage(document.querySelector('#crosshair'), this.x, this.y,pixelSize,pixelSize);
+    }
+    move(x,y){
+      this.x = x
+      this.y = y
+    }
+  }
+  crosshair = new Crosshair((canvasSize/2)-pixelSize/2,(canvasSize/2)-pixelSize/2)
+  canvash.addEventListener('mousemove',e => {
+    const rect = canvash.getBoundingClientRect()
+    mouse.x = event.clientX - rect.left
+    mouse.y = event.clientY - rect.top
+    pos = boardMap.find( n => {
+      if( mouse.x >= n.x && mouse.x <= (n.x+pixelSize) && 
+        mouse.y >= n.y && mouse.y <= (n.y+pixelSize)){
+        return n
+      }
+    })
+    try {
+      crosshair.move((pos.x),(pos.y))
+    } catch (error) { }
+  })
+  
+  /* click - draw */
+  canvash.addEventListener('mousedown',e => {
+    const rect = canvash.getBoundingClientRect()
+    mouse.x = event.clientX - rect.left
+    mouse.y = event.clientY - rect.top
+    mouse.click = true
+
+  })
+  canvash.addEventListener('mouseup' ,e => {
+    mouse.click = false
+  })
+
+  function hoverAnimation(){
+    requestAnimationFrame(hoverAnimation)
+    ctxh.clearRect(0,0,canvash.width,canvash.height)
+    crosshair.draw()
+    if(mouse.click){
+      boardMap.find(n => {
+        if( mouse.x >= n.x && mouse.x <= (n.x+pixelSize) && 
+        mouse.y >= n.y && mouse.y <= (n.y+pixelSize)){
+          if(mouse.color == 'royalblue'){
+            boardMap.find(c => {
+              if(c.color == 'royalblue'){
+                c.color = 'white'
+                c.draw()
+              }
+            })
+          }
+          if(mouse.color == 'lightgreen'){
+            boardMap.find(c => {
+              if(c.color == 'lightgreen'){
+                c.color = 'white'
+                c.draw()
+              }
+            })
+          }
+          n.color = mouse.color
+          n.draw()
+        }
+      })  
+    }
+  }
+  
+  /* set color */
+  function setColor(color,pos){
+    mouse.color = color
+    sect = document.querySelector('section.tools')
+    for (let i = 0; i < 4; i++) {
+      if(sect.children[i].classList[1] != undefined) sect.children[i].classList.remove('activeBtn')
+    }
+    sect.children[pos-1].classList.add('activeBtn')
+  }
+
+  /* save map in json */
+  function saveMap(){
+    cm = {start: false, end: false}
+    boardMap.find(n => {
+      if(n.color == 'royalblue') cm.start = true
+      if(n.color == 'lightgreen') cm.end = true
+    })
+    if(cm.start && cm.end){
+      target = new Image()
+      target.src = canvas.toDataURL()
+      target.id = 'mapimg'
+      document.querySelector('body').appendChild(target);
+
+      fetch('/savemap',{
+        method: 'POST',
+        body: JSON.stringify({
+          user: prompt('Nombre de usuario'),
+          map: boardMap,
+          img: document.querySelector('#mapimg').src
+        }),
+        headers:{
+          'Content-Type': 'application/json'
+        }
+      }).then(r => r.json())
+        .then(r => {
+          window.location.href = '/'
+        })
+      
+    }else{
+      Swal.fire(
+      'Error',
+      'Tienes que poner un inicio y una meta',
+      'error'
+      )
+    }
+  }
+
+  /* draw border */
+  function drawBorder(){
+    board = boardMap.map(n => {
+      if( n.x == 0 || n.x == canvasSize-pixelSize ||
+          n.y == 0 || n.y == canvasSize-pixelSize
+      ){
+        n.color = 'black'
+        n.draw()
+      }
+    })
+  }
+
+  /* clean board */
+  function cleanBoard(){
+    board = boardMap.map(n => {
+      if(n.color != 'white'){
+        n.color = 'white'
+        n.draw()
+      }
+    })
+  }
+
+  /* init */
+  async function init(){
+    boardMap = filBoard()
+    printBoard(boardMap)
+    hoverAnimation()
+  }
+
+  init()
+</script>
