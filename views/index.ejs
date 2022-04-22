@@ -100,6 +100,11 @@ section.games div img {
   const socket = io('http://localhost:3000')
   const rooms = [];
   
+    socket.on('user-connected', player => {
+      console.log(player);
+    })
+
+
   socket.on('update-rooms', () => {
       getRooms()
   })

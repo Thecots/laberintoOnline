@@ -16,7 +16,7 @@
     font-family: 'Montserrat',sans-serif;
   }   
   body{
-    background: #d8e4fc;
+    background: #ffffff;
     display: flex;
     flex-direction: column;
   }
@@ -24,15 +24,17 @@
   main{
     position: relative;
     margin: 50px auto;
+    max-width: 100%;
+    width: 1500px;
+    gap: 30px;
     display: grid;
-    gap: 10px;
     grid-template-areas: 
-    "canvas options" "tools none";
+    "header header" "canvas info";
   }
 
-  .options{grid-area: options;}
-  .canvas{grid-area: canvas;}
-  .tools{grid-area: tools;}
+  header{grid-area: header;}
+  section.canvasBox{grid-area: canvas;}
+  .info{grid-area: info;}
 
   .canvas{
     background: rgb(255, 255, 255);
@@ -127,16 +129,61 @@
   }
 
   img{display: none;}
+  /* header */
+
+
+  
+header{
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0px;
+  border-bottom: 2px solid;
+}
+
+header h1{
+  font-weight: 400;
+}
+
+header div{
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+header a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 30px;
+  font-weight: 15px;
+  text-decoration: none;
+  border-radius: 4px;
+  color: black;
+  background-color: rgb(238, 144, 144) ;
+  font-weight: 500;
+}
 </style>
 <body>
   <a href="/">salir</a>
   <main>
+    <header>
+      <h1>Crear partida</h1>
+      <div>
+        <a style="  background-color: rgb(238, 144, 144) !important; color: black !important;" href="/">Volver</a>
+      </div>
+    </header>
    <section class="canvasBox">
       <canvas class="canvas"></canvas>
       <canvas class="hover">
         <img src="./img/crosshair.png" id="crosshair">
       </canvas>
    </section>
+   <aside class="info">
+     hola
+   </aside>
   </main>
   <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
