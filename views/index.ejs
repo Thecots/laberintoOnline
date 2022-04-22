@@ -1,48 +1,4 @@
 <style>
-  main{
-  margin: 0 auto;
-  padding: 10px;
-  max-width: 100%;
-  width: 1500px;
-}
-
-main header{
-  display: flex;
-  justify-content: space-between;
-  padding:  2px 0px;
-  border-bottom: 2px solid;
-}
-
-main header h1{
-  font-weight: 400;
-}
-
-main header div{
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-main header a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 140px;
-  height: 30px;
-  font-weight: 15px;
-  text-decoration: none;
-  border-radius: 4px;
-  color: white;
-  background-color: royalblue;
-  font-weight: 500;
-}
-main header a:last-child{
-  background-color: lightgreen !important;
-  color: black;
-}
-
-/* section */
-
 section.games{
   margin-top: 10px;
   display: flex;
@@ -83,14 +39,14 @@ section.games div img {
 }
 
 </style>
+<header>
+  <h1>Partidas</h1>
+  <div>
+    <a href="/crear_partida">Crear partida</a>
+    <a href="/crear_mapa">Crear mapa</a>
+  </div>
+</header>
 <main>
-  <header>
-    <h1>Partidas</h1>
-    <div>
-      <a href="/crear_partida">Crear partida</a>
-      <a href="/crear_mapa">Crear mapa</a>
-    </div>
-  </header>
   <section class="games">
   </section>
 </main>
@@ -100,6 +56,11 @@ section.games div img {
   const socket = io('http://localhost:3000')
   const rooms = [];
   
+    socket.on('user-connected', player => {
+      console.log(player);
+    })
+
+
   socket.on('update-rooms', () => {
       getRooms()
   })

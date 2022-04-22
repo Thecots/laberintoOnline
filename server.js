@@ -101,8 +101,8 @@ io.on('connection', socket => {
     socket.join(room)
     let player = {name: name, id: socket.id, color: colors[rooms[room].players.length]}
     rooms[room].players.push(player)
-    io.sockets.emit('update-rooms',true)
-    socket.broadcast.to(room).emit('user-connected', {player})
+    socket.emit('user-connected', player);
+    socket.broadcast.to(room).emit('user-connected', player)
   })
 
 
