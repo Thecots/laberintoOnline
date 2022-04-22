@@ -22,7 +22,6 @@ app.set('views', path.join(__dirname + '/views'))
 app.set('layout',  path.join(__dirname + '/views/layouts/main'))
 
 /* class */
-
 class Game{
   constructor(title, map,playersSize){
     this.title = title
@@ -100,7 +99,7 @@ io.on('connection', socket => {
       return res.redirect('/')
     }
     socket.join(room)
-    let player = {name: name, id: socket.id, color: colors[rooms[room].players.length-1]}
+    let player = {name: name, id: socket.id, color: colors[rooms[room].players.length]}
     rooms[room].players.push(player)
     io.sockets.emit('update-rooms',true)
     socket.broadcast.to(room).emit('user-connected', {player})

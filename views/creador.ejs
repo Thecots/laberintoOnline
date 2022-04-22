@@ -186,20 +186,16 @@ header a {
    </section>
   </main>
   <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    /* settings */
-    const canvasSize = 600
-    const pixelSize = canvasSize / 20
-    const mouse = {
-      click: false,
-      x: 0,
-      y: 0,
-      color: 'black'
-    }
-    let boardMap;
-
+<script>
   const canvas = document.querySelector('canvas.canvas')
   const ctx = canvas.getContext('2d')
+  
+  
+  /* settings */
+  const canvasSize = 600
+  const pixelSize = canvasSize / 20
+  const mouse = { click: false, x: 0, y: 0, color: 'black'}
+  let boardMap;
   canvas.width = canvas.height = canvasSize
 
   class Pixel{
@@ -217,7 +213,7 @@ header a {
     }
   }
 
-
+  /* crear tablero */
   function filBoard(){
     let board = []
     for (let y = 0; y < 20; y++) {
@@ -228,6 +224,7 @@ header a {
     return board;
   }
 
+  /* pintar canvas */
   function printBoard(board){
     for (let i = 0; i < board.length; i++) {
       board[i].draw()
@@ -310,7 +307,7 @@ header a {
     }
   }
   
-  /* set color */
+  /* Cambiar color */
   function setColor(color,pos){
     mouse.color = color
     sect = document.querySelector('section.tools')
@@ -320,7 +317,7 @@ header a {
     sect.children[pos-1].classList.add('activeBtn')
   }
 
-  /* save map in json */
+  /* Guardar mapa */
   function saveMap(){
     cm = {start: false, end: false}
     boardMap.find(n => {
@@ -347,7 +344,6 @@ header a {
         .then(r => {
           window.location.href = '/'
         })
-      
     }else{
       Swal.fire(
       'Error',
@@ -357,7 +353,7 @@ header a {
     }
   }
 
-  /* draw border */
+  /* pintar borde */
   function drawBorder(){
     board = boardMap.map(n => {
       if( n.x == 0 || n.x == canvasSize-pixelSize ||
@@ -369,7 +365,7 @@ header a {
     })
   }
 
-  /* clean board */
+  /* limpiar canvas */
   function cleanBoard(){
     board = boardMap.map(n => {
       if(n.color != 'white'){
