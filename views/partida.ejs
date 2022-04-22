@@ -239,34 +239,22 @@ header a {
     }
   }
   
-  
-  const canvash = document.querySelector('canvas.hover')
-  const ctxh = canvash.getContext('2d')
-  canvash.width = canvash.height = canvasSize
-  function hoverAnimation(){
-    requestAnimationFrame(hoverAnimation)
-    ctxh.clearRect(0,0,canvash.width,canvash.height)
-    players.forEach(n => { n.draw()})
-  }
 
-
-  /* get level 1 */
-  function getLevel(){
-    fetch('http://127.0.0.1:5500/level1.json')
-    .then(response => response.json())
-    .then(r => {
-      arr = []
-      for (let i = 0; i < r.length; i++) {
-        arr.push(new Pixel(r[i].x,r[i].y,r[i].color))  
-      }
-      boardMap = arr;
-      printBoard(boardMap)
-    })
-  }
 
   function getQuery(q) {
    return (window.location.search.match(new RegExp('[?&]' + q + '=([^&]+)')) || [, null])[1];
   }
+
+
+  function loop(){
+    requestAnimationFrame(loop)
+    ctx.clearRect(0,0, canvas.width, canvas.height)
+    printBoard(boardMap)
+    players.forEach(n => {
+      n.draw()
+    })
+  }
+
 
   /* init */
   async function init(){
@@ -281,12 +269,11 @@ header a {
       r.data.map.forEach(n => {
         boardMap.push(new Pixel(n.x,n.y,n.color))
       });
-      printBoard(boardMap)
       res = boardMap.filter(n => n.color == 'royalblue')
       players.push(new Player(res[0].x,res[0].y,'red'))
+      loop()
     })
   }
-    hoverAnimation()
 
   class Player{
     constructor(x,y,color){
@@ -296,11 +283,11 @@ header a {
     }
 
     draw(){
-      ctxh.beginPath()
-      ctxh.arc(this.x+25/2+3,this.y+25/2+3,10,Math.PI*2,false)
-      ctxh.fillStyle = this.color
-      ctxh.fill()
-      ctxh.closePath()
+      ctx.beginPath()
+      ctx.arc(this.x+25/2+3,this.y+25/2+3,10,Math.PI*2,false)
+      ctx.fillStyle = this.color
+      ctx.fill()
+      ctx.closePath()
     }
   }
 
